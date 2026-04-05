@@ -41,7 +41,7 @@ if %errorlevel% equ 0 (
     
     :: Final Fallback: Manual Input [cite: 2]
     echo [!] Auto-detection failed.
-    set /p "INPUT_URL=Enter IP/Host (e.g. 192.168.1.5:1234): "
+    set /p "INPUT_URL=Enter IP/Host (e.g. 192.168.123.567:1234): "
     set "TEMP_URL=!INPUT_URL!"
     set "TEMP_URL=!TEMP_URL:http://=!"
     set "TEMP_URL=!TEMP_URL:https://=!"
