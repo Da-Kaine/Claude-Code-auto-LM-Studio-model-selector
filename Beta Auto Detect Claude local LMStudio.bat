@@ -1,7 +1,22 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: 1. Check for Claude CLI Installation [cite: 1]
+:: 0. Check for npm (Node.js) 
+where npm >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [!] npm not found. Node.js is required.
+    echo [!] Attempting to install Node.js via winget...
+    winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
+    if %errorlevel% neq 0 (
+        echo [ERROR] Automatic installation failed. Please install Node.js manually from https://nodejs.org/
+        pause
+        exit /b
+    )
+    echo [+] Node.js installed! You may need to restart this script or your terminal for changes to take effect.
+    pause
+)
+
+:: 1. Check for Claude CLI Installation 
 where claude >nul 2>nul
 if %errorlevel% neq 0 (
     echo [!] Claude CLI not found. Installing...
@@ -21,7 +36,8 @@ powershell -NoProfile -Command "try { $r = Invoke-WebRequest -Uri '%BASE_URL%/v1
 if %errorlevel% equ 0 (
     echo [+] Found LM Studio on localhost.
 ) else (
-    echo [-] Localhost not responding. Checking Local Network IP... [cite: 2]
+    echo [-] Localhost not responding. 
+    echo Checking Local Network IP... [cite: 2]
     for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr "IPv4"') do (
         set "MY_IP=%%a"
         set "MY_IP=!MY_IP: =!"
@@ -33,7 +49,7 @@ if %errorlevel% equ 0 (
         )
     )
     echo [!] Auto-detection failed. [cite: 4]
-    set /p "INPUT_URL=Enter IP/Host (e.g. 192.168.123.456:1234): "
+    set /p "INPUT_URL=Enter IP/Host (e.g. 192.168.1.5:1234): "
     set "TEMP_URL=!INPUT_URL!"
     set "TEMP_URL=!TEMP_URL:http://=!"
     set "TEMP_URL=!TEMP_URL:https://=!"
@@ -71,13 +87,12 @@ if %count% equ 0 (
     exit /b
 )
 
-:: --- 10s DYNAMIC PROMPT & MODE SELECTION ---
+:: 5. 10s DYNAMIC PROMPT & MODE SELECTION
 echo.
 set "CHOICE="
 set "MODE=BYPASS"
 set "TARGET_PATH=."
 
-:: PowerShell loop for the dynamic countdown
 powershell -NoProfile -Command "$t=10; $s=Get-Date; while($t -gt 0){ if($Host.UI.RawUI.KeyAvailable){exit 1}; Write-Host -NoNewline (\"`rSelect model number (\" + $t + \"s) : \"); Start-Sleep -m 500; $t=10-[math]::Floor(((Get-Date)-$s).TotalSeconds) }; exit 0"
 
 if %errorlevel% equ 0 (
@@ -88,7 +103,6 @@ if %errorlevel% equ 0 (
     goto :LAUNCH_CLAUDE
 )
 
-:: Manual Inputs if key was pressed
 echo.
 set /p "CHOICE=Select model number: "
 set /p "M_INPUT=Mode? (1=Bypass, 2=Standard) [Default 1]: "
